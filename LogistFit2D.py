@@ -15,6 +15,7 @@ def sigmoid(x: np.array, w: np.array, b: float):
 
 
 # Compute likelihood and gradient at the same time
+# Adding L2 regularization
 def likelihood(z: np.array, x: np.array, y: np.array, w: np.array, b: float):
 
     nx = x.shape[1]
@@ -51,6 +52,10 @@ def likelihood(z: np.array, x: np.array, y: np.array, w: np.array, b: float):
             else:
                 p = 0.0000001
                 sum_ln_p = sum_ln_p + np.log(p)
+
+    l2_reg = 0.0001*((w[0]*w[0]) + (w[1]*w[1]) + (b*b))
+    # print(' ll = %.4f , reg = %.4f ' % (sum_ln_p, l2_reg))
+    sum_ln_p = sum_ln_p - (0.0001*l2_reg)
 
     mx = mx/(nx*ny)
     my = my/(nx*ny)
