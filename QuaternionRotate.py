@@ -54,7 +54,29 @@ class Quaternion:
 
     def __init__(self):
 
-        self.q = np.array([1, 0, 0, 0])
+        self.origin = np.array([0., 0., 0.])
+        self.axis = np.array([0, 0, 0])
+
+    # vector is defined as v = p1 - p0
+    def set_rotate_axis(self, p0: np.array, p1: np.array):
+
+        q = p1 - p0
+        qu = q / np.linalg.norm(q)
+        self.origin = p0
+        self.axis = [qu[0], qu[1], qu[2]]
+        return qu
+
+    def rotate_a(self, p0: np.array, p1: np.array, theta_deg: float):
+
+        v0 = p0 - self.origin
+        v1 = p1 - self.origin
+        rv0 = self.rotate(self.axis, v0, theta_deg)
+        rv1 = self.rotate(self.axis, v1, theta_deg)
+
+        rv_0 = rv0 + self.origin
+        rv_1 = rv1 + self.origin
+
+        return rv_0, rv_1
 
     # rotate v3 w.r.t. q3,
     # v3 , q3 are 3-vector: [v_i, v_j, v_k]
@@ -100,33 +122,53 @@ class Quaternion:
         return rot_v
 
 
+###########
 # testing
+###########
 v1 = np.array([5, 5, 5])
-qv = np.array([0, 0, -3])
-r_angle_deg = 120
-
-rv = rotate(qv, v1, r_angle_deg)
-n_rv = np.linalg.norm(rv)
-n_v1 = np.linalg.norm(v1)
-print(' rotate vector')
-print(rv)
-print(n_rv)
-print(n_v1)
+v0 = np.array([2, 0, 1])
+qv = np.array([3, 0, 8])
+qv0 = np.array([1, 0, 3])
+r_angle_deg = 10
+vlist = [[qv0, qv, 'r'], [v0, v1, 'b']]
 
 qtr = Quaternion()
 rv1 = qtr.rotate(qv, v1, r_angle_deg)
+qtr.set_rotate_axis(qv0, qv)
 
-ua = [qv[0], v1[0], rv1[0]]
-va = [qv[1], v1[1], rv1[1]]
-wa = [qv[2], v1[2], rv1[2]]
-xa = [0, 0, 0]
-ya = [0, 0, 0]
-za = [0, 0, 0]
+for i in range(35):
+
+    r0, r1 = qtr.rotate_a(v0, v1, r_angle_deg)
+    vlist.append([r0, r1, 'g'])
+    r10 = r1 - r0
+    v10 = v1 - v0
+    m_v10 = np.linalg.norm(v10)
+    m_r10 = np.linalg.norm(r10)
+    print(' [%d] mag for %.3f - %.3f' % (i,m_v10, m_r10))
+    r_angle_deg = r_angle_deg + 10
 
 # 4. Display the results
 fig = plt.figure(figsize=(6, 5))
 ax = fig.add_subplot(111, projection='3d')
-ax.quiver(xa, ya, za, ua, va, wa)
+
+for it in vlist:
+
+    xa = it[0][0]
+    ya = it[0][1]
+    za = it[0][2]
+    ua = it[1][0]-it[0][0]
+    va = it[1][1]-it[0][1]
+    wa = it[1][2]-it[0][2]
+    ax.quiver(xa, ya, za, ua, va, wa, color=it[2])
+
+
+# ua = [qv[0]-qv0[0], v1[0]-v0[0], r1[0]-r0[0]]
+# va = [qv[1]-qv0[1], v1[1]-v0[1], r1[1]-r0[1]]
+# wa = [qv[2]-qv0[2], v1[2]-v0[2], r1[2]-r0[2]]
+# xa = [qv0[0], v0[0], r0[0]]
+# ya = [qv0[1], v0[1], r0[1]]
+# za = [qv0[2], v0[2], r0[2]]
+
 ax.set_xlim([-10, 10])
 ax.set_ylim([-10, 10])
 ax.set_zlim([-5, 10])
