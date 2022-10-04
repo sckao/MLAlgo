@@ -13,6 +13,7 @@ def vec_cross(p1, p2, q1, q2):
     return vxu
 
 
+# test
 xa = np.arange(10, 40, 2)
 ya = np.arange(5, 35, 5)
 print(xa.shape)
